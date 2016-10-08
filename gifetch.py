@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import os
+import sys
+import urllib
+from bs4 import BeautifulSoup
 
 
 def main():
@@ -11,8 +15,9 @@ def main():
 
     p = argparse.ArgumentParser(description='Batch downloads a set amount of images in seperate subfolders matching the Google Image search query of each folder name.')
     p.add_argument('path',
-                   default='',
-                   help='path to directory with image folders')
+                   default=os.getcwd(),
+                   nargs='?',
+                   help='absolute path to directory with image folders. defaults to working directory')
     p.add_argument('-n',
                    default=10,
                    type=int,
@@ -20,20 +25,48 @@ def main():
     p.add_argument('--size', '-s',
                    choices=sizes,
                    default='m',
-                   help='minimum image size. Values: ' + ', '.join(sizes),
-                   metavar='')
+                   nargs='?',
+                   metavar='s',
+                   help='(optional) minimum image size. Values: ' + ', '.join(sizes) + '. defaults to m'
+                   )
     p.add_argument('--type', '-t',
                    choices=types,
                    default='',
-                   help='image type. Values: ' + ', '.join(sizes),
-                   metavar='')
+                   nargs='?',
+                   metavar='t',
+                   help='(optional) image type. Values: ' + ', '.join(types) + ' (optional)')
+
     args = p.parse_args()
-    print(args)
+    # print(args)
+    if not os.path.isdir(args.path):
+        sys.exit('Invalid Path.')
+    dirs = [d for d in next(os.walk(args.path))[1] if not d.startswith('.')]
+    if not dirs:
+        sys.exit('No subfolders. Add one subfolder for each image query')
+
+    fetcher = ImageFetcher(args)
+    for query in dirs:
+        urls = fetcher.collect_urls(query)
+        # print(urls)
+        # fetcher.store_images(urls,query)
 
 
+class ImageFetcher:
+    def __init__(self, args):
+        self.args = args
 
-def print_usage():
-    print("")
+    def collect_urls(self, query):
+        urls = []
+        query_string = 'https://www.google.de/search?q={}&tbm=isch&tbs=isz:{},itp:{}'
+        query_string = query_string.format(query.replace(' ','+'), self.args.size, self.args.type)
+
+        response = urllib.request.urlopen(query_string)
+        return urls
+
+    def store_images(self, urls, dir):
+        pass
+
+
 
 if __name__ == '__main__':
     main()
