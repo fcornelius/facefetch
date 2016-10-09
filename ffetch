@@ -56,6 +56,10 @@ def main():
                    metavar='',
                    help='(optional) specify format to rename image files. Accepts python3 string formats, ' +
                         'use {:d} for a running number and {dir} for the subfolder name')
+    p.add_argument('--verbose', '-v',
+                   action='store_true',
+                   default=False,
+                   help='enable verbose output')
 
 
     args = p.parse_args()
@@ -72,6 +76,7 @@ def main():
 
     fetcher = ImageFetcher(args)
     for query in dirs:
+        if skipdir(query,args): continue
         urls = fetcher.collect_urls(query)
         fetcher.store_images(urls,query)
 
@@ -90,6 +95,12 @@ def file_from_url(url):
 def ftype_from_url(url):
     return file_from_url(url).rpartition('.')[2]
 
+def skipdir(dir,args):
+    if len(next(os.walk(args.path+'/'+dir))[2]) < args.n:
+        return False
+    else:
+        return True
+
 
 
 class ImageFetcher:
@@ -98,9 +109,10 @@ class ImageFetcher:
 
     def collect_urls(self, query):
         urls = []
+        if self.args.verbose: print(query)
         print('Collecting img urls...')
         query_string = 'https://www.bing.com/images/search?&q={}&qft={}{}{}'
-        query_string = query_string.format(query.replace(' ','+'), self.args.size, self.args.type, self.args.face)
+        query_string = query_string.format(urllib.parse.quote_plus(query), self.args.size, self.args.type, self.args.face)
 
         first = 1
         count = 28
@@ -110,18 +122,24 @@ class ImageFetcher:
             query_url = query_string.format(first)
 
             req = urllib.request.Request(query_url, headers={'User-Agent' : "gifetch"})
-            res = urllib.request.urlopen(req)
-            html = res.read()
-            soup = BeautifulSoup(html, 'lxml')
-            imgs = soup.select('a[class=thumb]')
+            try:
+                res = urllib.request.urlopen(req)
+            except Exception as e:
+                if self.args.verbose:
+                    print(e)
+                    print('url:', query_url)
+            else:
+                html = res.read()
+                soup = BeautifulSoup(html, 'lxml')
+                imgs = soup.select('a[class=thumb]')
 
-            for i in imgs:
-                url = i['href']
-                if not url in urls and \
-                    ftype_from_url(url) in self.args.ftypes:
-                    urls.append(i['href'])
+                for i in imgs:
+                    url = i['href']
+                    if not url in urls and \
+                        ftype_from_url(url) in self.args.ftypes:
+                        urls.append(i['href'])
 
-            first += count
+                first += count
         return urls
 
     def store_images(self, urls, dir):
@@ -135,11 +153,11 @@ class ImageFetcher:
                 req = urllib.request.Request(url, headers={'User-Agent': "gifetch"})
                 res = urllib.request.urlopen(req)
             except urllib.error.HTTPError as err:
-                print(err)
-            except:
-                print("Error storing image")
+                if self.args.verbose: print(err)
+            except Exception as e:
+                if self.args.verbose: print(e)
             else:
-                while os.path.isfile(filename):
+                while os.path.isfile(filename) and not self.args.rename:
                     parts = filename.rpartition('.')
                     filename = parts[0] + '_' + ''.join(parts[1:])
 
