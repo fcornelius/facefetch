@@ -50,6 +50,13 @@ def main():
                    nargs='*',
                    metavar='',
                    help='(optional) limit to image file types. Values: ' + ', '.join(ftypes))
+    p.add_argument('--rename', '-F',
+                   default='',
+                   nargs='?',
+                   metavar='',
+                   help='(optional) specify format to rename image files. Accepts python3 string formats, ' +
+                        'use {:d} for a running number and {dir} for the subfolder name')
+
 
     args = p.parse_args()
     if not os.path.isdir(args.path):
@@ -57,13 +64,16 @@ def main():
     dirs = [d for d in next(os.walk(args.path))[1] if not d.startswith('.')]
     if not dirs:
         sys.exit('No subfolders. Add one subfolder for each image query')
+    try:
+        args.rename.format(1,dir='')
+    except (KeyError, ValueError) as e:
+        sys.exit(e)
 
 
     fetcher = ImageFetcher(args)
     for query in dirs:
         urls = fetcher.collect_urls(query)
         fetcher.store_images(urls,query)
-
 
 
 def progress(count, total):
@@ -79,6 +89,7 @@ def file_from_url(url):
 
 def ftype_from_url(url):
     return file_from_url(url).rpartition('.')[2]
+
 
 
 class ImageFetcher:
@@ -111,7 +122,6 @@ class ImageFetcher:
                     urls.append(i['href'])
 
             first += count
-        # urls = urls[0:self.args.n]
         return urls
 
     def store_images(self, urls, dir):
@@ -119,8 +129,7 @@ class ImageFetcher:
         i = 1
         n = self.args.n
         for url in urls:
-            filename = file_from_url(url)
-            filename = self.args.path + '/' + dir + '/' + filename
+            filename = self.build_path(url,i,dir)
             # print(url)
             try:
                 req = urllib.request.Request(url, headers={'User-Agent': "gifetch"})
@@ -142,6 +151,16 @@ class ImageFetcher:
 
             if i > n: break
             # progress(i, n)
+
+    def build_path(self, url, i, dir):
+        if self.args.rename:
+            dir_lower = dir.replace(' ', '').lower()
+            ft = ftype_from_url(url)
+            filename = (self.args.rename + '.{ftype}').format(i, dir_lower, ftype=ft)
+        else:
+            filename = file_from_url(url)
+        return self.args.path + '/' + dir + '/' + filename
+
 
 
     @staticmethod
