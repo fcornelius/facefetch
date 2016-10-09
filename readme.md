@@ -1,6 +1,6 @@
 # facefetch
 
-A script to batch download a set of images matching specified criteria off Bing Images and organize each set in subfolders.
+A script to batch download a sets of images matching specified criteria off Bing Images and organize each set in subfolders.
 Although this was originally used to gather training data for a face recognizer it can be utilized to accumulate any kind of image clusters.
 
 
