@@ -4,7 +4,7 @@
 import argparse
 import os
 import sys
-import urllib.request
+import urllib
 from bs4 import BeautifulSoup
 
 
@@ -56,8 +56,7 @@ def main():
     fetcher = ImageFetcher(args)
     for query in dirs:
         urls = fetcher.collect_urls(query)
-        # print(urls)
-        # fetcher.store_images(urls,query)
+        fetcher.store_images(urls,query)
 
 
 
@@ -68,7 +67,6 @@ class ImageFetcher:
         self.args = self.set_query_params(args)
 
     def collect_urls(self, query):
-        urls = []
         query_string = 'https://www.bing.com/images/search?&q={}&qft={}{}{}'
         query_string = query_string.format(query.replace(' ','+'), self.args.size, self.args.type, self.args.face)
 
@@ -78,13 +76,14 @@ class ImageFetcher:
         soup = BeautifulSoup(html, 'lxml')
         imgs = soup.select('a[class=thumb]')
 
-        for i in range(1, self.args.n):
-            url = img[i]['href']
-
-
+        urls = [imgs[i]['href'] for i in range(0, self.args.n)]
+        return urls
 
     def store_images(self, urls, dir):
-        pass
+        for url in urls:
+            filename = urllib.parse.urlparse(url)[2].rpartition('/')[2]
+            filename = self.args.path + filename
+            urllib.request.urlretrieve(url, filename)
 
     @staticmethod
     def set_query_params(args):
