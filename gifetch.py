@@ -82,8 +82,21 @@ class ImageFetcher:
     def store_images(self, urls, dir):
         for url in urls:
             filename = urllib.parse.urlparse(url)[2].rpartition('/')[2]
-            filename = self.args.path + filename
-            urllib.request.urlretrieve(url, filename)
+            filename = self.args.path + '/' + dir + '/' + filename
+            print(url)
+            try:
+                req = urllib.request.Request(url, headers={'User-Agent': "gifetch"})
+                res = urllib.request.urlopen(req)
+            except urllib.error.HTTPError as err:
+                print("HTTP-Error:" + str(err))
+            except:
+                print("Error storing image")
+            else:
+                out = open(filename, 'wb')
+                out.write(res.read())
+                out.close()
+
+
 
     @staticmethod
     def set_query_params(args):
