@@ -30,31 +30,31 @@ def main():
                    default='medium',
                    nargs='?',
                    metavar='s',
-                   help='(optional) minimum image size. Values: ' + ', '.join(sizes) + '. defaults to medium'
+                   help='minimum image size. Values: ' + ', '.join(sizes) + '. defaults to medium'
                    )
     p.add_argument('--type', '-t',
                    choices=types,
                    default='',
                    nargs='?',
                    metavar='t',
-                   help='(optional) image type. Values: ' + ', '.join(types))
+                   help='image type. Values: ' + ', '.join(types))
     p.add_argument('--face', '-f',
                    choices=face,
                    default='',
                    nargs='?',
                    metavar='f',
-                   help='(optional) images with faces. Values: ' + ', '.join(face))
+                   help='images with faces. Values: ' + ', '.join(face))
     p.add_argument('--ftypes', '-T',
                    choices=ftypes,
                    default=ftypes,
                    nargs='*',
                    metavar='',
-                   help='(optional) limit to image file types. Values: ' + ', '.join(ftypes))
+                   help='limit to image file types. Values: ' + ', '.join(ftypes))
     p.add_argument('--rename', '-F',
                    default='',
                    nargs='?',
                    metavar='',
-                   help='(optional) specify format to rename image files. Accepts python3 string formats, ' +
+                   help='specify format to rename image files. Accepts python3 string formats, ' +
                         'use {:d} for a running number and {dir} for the subfolder name')
     p.add_argument('--verbose', '-v',
                    action='store_true',
