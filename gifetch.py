@@ -11,9 +11,10 @@ from bs4 import BeautifulSoup
 
 def main():
 
-    sizes = ['all', 'small', 'medium', 'large', 'xlarge']
-    types = ['photo', 'clipart', 'lineart', 'anim']
-    face  = ['closeup', 'portrait']
+    sizes  = ['all', 'small', 'medium', 'large', 'xlarge']
+    types  = ['photo', 'clipart', 'lineart', 'anim']
+    face   = ['closeup', 'portrait']
+    ftypes = ['jpg', 'png', 'gif', 'tiff', 'bmp', 'svg']
 
     p = argparse.ArgumentParser(description='Batch downloads a set amount of images in seperate subfolders matching the Bing Image search query of each folder name.')
     p.add_argument('path',
@@ -43,16 +44,20 @@ def main():
                    nargs='?',
                    metavar='f',
                    help='(optional) images with faces. Values: ' + ', '.join(face))
+    p.add_argument('--ftypes', '-T',
+                   choices=ftypes,
+                   default=ftypes,
+                   nargs='*',
+                   metavar='',
+                   help='(optional) limit to image file types. Values: ' + ', '.join(ftypes))
 
     args = p.parse_args()
-    # print(args)
     if not os.path.isdir(args.path):
         sys.exit('Invalid Path.')
     dirs = [d for d in next(os.walk(args.path))[1] if not d.startswith('.')]
     if not dirs:
         sys.exit('No subfolders. Add one subfolder for each image query')
 
-    # Size query params
 
     fetcher = ImageFetcher(args)
     for query in dirs:
@@ -69,6 +74,11 @@ def progress(count, total):
      if count == total: sys.stdout.write('\n')
      sys.stdout.flush()
 
+def file_from_url(url):
+    return urllib.parse.urlparse(url)[2].rpartition('/')[2]
+
+def ftype_from_url(url):
+    return file_from_url(url).rpartition('.')[2]
 
 
 class ImageFetcher:
@@ -76,25 +86,40 @@ class ImageFetcher:
         self.args = self.set_query_params(args)
 
     def collect_urls(self, query):
+        urls = []
         print('Collecting img urls...')
         query_string = 'https://www.bing.com/images/search?&q={}&qft={}{}{}'
         query_string = query_string.format(query.replace(' ','+'), self.args.size, self.args.type, self.args.face)
 
-        req = urllib.request.Request(query_string, headers={'User-Agent' : "gifetch"})
-        res = urllib.request.urlopen(req)
-        html = res.read()
-        soup = BeautifulSoup(html, 'lxml')
-        imgs = soup.select('a[class=thumb]')
+        first = 1
+        count = 28
+        query_string += '&first={}&count=' + str(count)
 
-        urls = [imgs[i]['href'] for i in range(0, self.args.n)]
+        while len(urls) < self.args.n + 10:
+            query_url = query_string.format(first)
+
+            req = urllib.request.Request(query_url, headers={'User-Agent' : "gifetch"})
+            res = urllib.request.urlopen(req)
+            html = res.read()
+            soup = BeautifulSoup(html, 'lxml')
+            imgs = soup.select('a[class=thumb]')
+
+            for i in imgs:
+                url = i['href']
+                if not url in urls and \
+                    ftype_from_url(url) in self.args.ftypes:
+                    urls.append(i['href'])
+
+            first += count
+        # urls = urls[0:self.args.n]
         return urls
 
     def store_images(self, urls, dir):
         print('Downloading images for ' + dir)
         i = 1
-        c = len(urls)
+        n = self.args.n
         for url in urls:
-            filename = urllib.parse.urlparse(url)[2].rpartition('/')[2]
+            filename = file_from_url(url)
             filename = self.args.path + '/' + dir + '/' + filename
             # print(url)
             try:
@@ -105,13 +130,18 @@ class ImageFetcher:
             except:
                 print("Error storing image")
             else:
+                while os.path.isfile(filename):
+                    parts = filename.rpartition('.')
+                    filename = parts[0] + '_' + ''.join(parts[1:])
+
                 out = open(filename, 'wb')
                 out.write(res.read())
                 out.close()
+                i += 1
+                print(filename)
 
-            progress(i,c)
-            i += 1
-
+            if i > n: break
+            # progress(i, n)
 
 
     @staticmethod
