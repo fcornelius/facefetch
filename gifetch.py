@@ -156,9 +156,10 @@ class ImageFetcher:
         if self.args.rename:
             dir_lower = dir.replace(' ', '').lower()
             ft = ftype_from_url(url)
-            filename = (self.args.rename + '.{ftype}').format(i, dir_lower, ftype=ft)
+            filename = (self.args.rename + '.{ftype}').format(i, dir=dir_lower, ftype=ft)
         else:
             filename = file_from_url(url)
+
         return self.args.path + '/' + dir + '/' + filename
 
 
