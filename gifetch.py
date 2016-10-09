@@ -1,9 +1,10 @@
 #!/user/bin/env python3
 # -*- coding: utf-8 -*-
 
-import argparse
+
 import os
 import sys
+import argparse
 import urllib
 from bs4 import BeautifulSoup
 
@@ -60,6 +61,14 @@ def main():
 
 
 
+def progress(count, total):
+     bar_w = 40
+     filled = round(bar_w * float(count) / total)
+     bar = '█' * filled + '-' * (bar_w-filled)
+     sys.stdout.write('\r▏{} ▏ {}/{} '.format(bar,count,total))
+     if count == total: sys.stdout.write('\n')
+     sys.stdout.flush()
+
 
 
 class ImageFetcher:
@@ -67,6 +76,7 @@ class ImageFetcher:
         self.args = self.set_query_params(args)
 
     def collect_urls(self, query):
+        print('Collecting img urls...')
         query_string = 'https://www.bing.com/images/search?&q={}&qft={}{}{}'
         query_string = query_string.format(query.replace(' ','+'), self.args.size, self.args.type, self.args.face)
 
@@ -80,21 +90,27 @@ class ImageFetcher:
         return urls
 
     def store_images(self, urls, dir):
+        print('Downloading images for ' + dir)
+        i = 1
+        c = len(urls)
         for url in urls:
             filename = urllib.parse.urlparse(url)[2].rpartition('/')[2]
             filename = self.args.path + '/' + dir + '/' + filename
-            print(url)
+            # print(url)
             try:
                 req = urllib.request.Request(url, headers={'User-Agent': "gifetch"})
                 res = urllib.request.urlopen(req)
             except urllib.error.HTTPError as err:
-                print("HTTP-Error:" + str(err))
+                print(err)
             except:
                 print("Error storing image")
             else:
                 out = open(filename, 'wb')
                 out.write(res.read())
                 out.close()
+
+            progress(i,c)
+            i += 1
 
 
 
