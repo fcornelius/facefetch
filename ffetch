@@ -183,7 +183,7 @@ class ImageFetcher:
 
     @staticmethod
     def set_query_params(args):
-        if args.size == 'all':
+        if args.size == 'xlarge':
             args.size = 'wallpaper'
         args.size = '+filterui:imagesize-' + args.size
         if args.size == 'all': args.size = ''
