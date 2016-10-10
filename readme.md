@@ -39,7 +39,7 @@ path                    absolute path to directory with image folders.
 Optional Arguments:
 
 ```
-  -h, --help            show help message
+  --help, -h            show help message
   -n                    number of images to download in each directory
   --size, -s            minimum image size. Values: all, small,
                         medium, large, xlarge. defaults to medium
