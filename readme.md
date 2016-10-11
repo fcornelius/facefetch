@@ -16,7 +16,7 @@ pip install beautifulsoup4
 ```
 git clone https://github.com/phoelix/facefetch.git
 cd facefetch
-mkdir 'Bud Spencer' && mkdir 'Terrence Hill'
+mkdir {'Bud Spencer','Terrence Hill'}
 ./ffetch -n 10 --size large --type photo --face closeup --ftypes jpg --rename {dir}_{:02d}
 ```
 
@@ -43,6 +43,7 @@ Optional Arguments:
   -n                    number of images to download in each directory
   --size, -s            minimum image size. Values: all, small,
                         medium, large, xlarge. defaults to medium
+  --min, -m  [w h]      minimum image size in pixel dimensions (width height)
   --type, -t            image type. Values: photo, clipart,
                         lineart, anim
   --face, -f            images with faces. Values: closeup, portrait
@@ -55,6 +56,16 @@ Optional Arguments:
 
 
 ```
+
+Image sizes are pixel-defined as followed:
+
++ small:   max 200x200
++ medium:  200x200 - 500x500
++ large:   min 500x500
++ xlarge:  min 1000x1000
+
+Define a custom minimum size with `-min` (eg `--min 300 400`)
+
 #### Notes
 
 + Prefix foldernames with '.' to be ignored and not queried

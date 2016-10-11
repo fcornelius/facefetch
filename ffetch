@@ -32,6 +32,11 @@ def main():
                    metavar='s',
                    help='minimum image size. Values: ' + ', '.join(sizes) + '. defaults to medium'
                    )
+    p.add_argument('--min', '-m',
+                   nargs=2,
+                   metavar='',
+                   help='minimum image size in pixel dimensions (width height)'
+                   )
     p.add_argument('--type', '-t',
                    choices=types,
                    default='',
@@ -187,6 +192,9 @@ class ImageFetcher:
             args.size = 'wallpaper'
         args.size = '+filterui:imagesize-' + args.size
         if args.size == 'all': args.size = ''
+        if args.min:
+            args.size = '+filterui:imagesize-custom_' + '_'.join(args.min)
+
 
         if args.type == 'lineart':
             args.type = 'linedrawing'
