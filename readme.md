@@ -64,7 +64,7 @@ Image sizes are pixel-defined as followed:
 + large:   min 500x500
 + xlarge:  min 1000x1000
 
-Define a custom minimum size with `-min` (eg `--min 300 400`)
+Define a custom minimum size with `--min` (eg `--min 300 400`)
 
 #### Notes
 
