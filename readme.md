@@ -5,10 +5,10 @@ Although this was originally used to gather training data for a face recognizer 
 
 
 #### Dependencies
-facefetch is written in Python3 and requires [Beautiful Soup 4](https://www.crummy.com/software/BeautifulSoup/) for html parsing
+facefetch is written in Python3 and requires [lxml](http://lxml.de/) and [Beautiful Soup 4](https://www.crummy.com/software/BeautifulSoup/) for html parsing
 
 ```
-pip install beautifulsoup4
+pip install lxml beautifulsoup4
 ```
 
 #### Sample usage
